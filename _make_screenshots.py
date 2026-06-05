@@ -29,8 +29,13 @@ def grab_window(root, filename):
 
 
 def main():
+    # Відключаємо авто-відкриття щоб не з'являвся file picker
+    m.App._auto_open = lambda self: None
     app = m.App()
     app.geometry("1280x820+50+20")
+    # Реалістичне значення для скріншотів (більшість підприємств):
+    # 50% — стандартне бронювання
+    app._bron_limit_var.set(50)
     app.update()
     time.sleep(0.5)
 
