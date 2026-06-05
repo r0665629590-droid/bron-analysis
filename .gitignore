@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Локальні налаштування користувача (не комітити приватні дані)
+# bron_settings.json — залишаємо в репо як шаблон
+
+# Excel тимчасові
+~$*.xlsx
+~$*.xls
+
+# Тестові/робочі файли з персональними даними
+*.xlsx
+*.xls
+*.csv
+*.pdf
+_*.json
+_*.txt
+
+# Дозволяємо приклад налаштувань
+!bron_settings.json

@@ -1,0 +1,18 @@
+{
+  "min_salary": 8650,
+  "coefficients": [
+    {
+      "name": "Звичайні (×2.5)",
+      "value": 2.5
+    },
+    {
+      "name": "Медики (×4.0)",
+      "value": 4.0
+    },
+    {
+      "name": "нова звичайна",
+      "value": 3.0
+    }
+  ],
+  "bron_limit_pct": 100
+}
