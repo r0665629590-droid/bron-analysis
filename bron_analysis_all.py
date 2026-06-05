@@ -1,9 +1,23 @@
 """
 =============================================================
-  Аналіз бронь — ЗП  |  Все в одному файлі  (v4)
+  Аналіз бронь — ЗП  |  Все в одному файлі  (v5)
 =============================================================
 Запуск:  python bron_analysis_all.py
 =============================================================
+
+Copyright (C) 2026 r0665629590-droid
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 3.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details: https://www.gnu.org/licenses/gpl-3.0.html
+
+Для комерційного використання без обмежень GPL —
+звертайтесь до автора через GitHub.
 """
 
 import tkinter as tk

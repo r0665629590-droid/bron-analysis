@@ -1,5 +1,10 @@
 # 📋 Аналіз броньювання — ЗП
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
+[![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)](https://github.com/r0665629590-droid/bron-analysis)
+[![Made for](https://img.shields.io/badge/Made_for-🇺🇦_Ukraine-yellow)](https://github.com/r0665629590-droid/bron-analysis)
+
 Десктопна програма (Python/Tkinter) для бухгалтерів та кадровиків в Україні.
 Перевіряє відповідність нарахованої зарплати **заброньованих працівників** мінімальному порогу,
 контролює **ліміт бронювання** та аналізує **військовий облік** на підставі вигрузки з **Дії**.
@@ -202,4 +207,23 @@
 
 ## 📜 Ліцензія
 
-Внутрішнє використання.
+Цей проект розповсюджується під ліцензією **[GNU General Public License v3.0](LICENSE)**.
+
+**Що це означає для вас:**
+- ✅ Можете **використовувати** безкоштовно (особисто, у компанії, у бухгалтерії)
+- ✅ Можете **модифікувати** під свої потреби
+- ✅ Можете **поширювати** (з тією ж ліцензією)
+- ⚠️ Якщо поширюєте модифікації — **вихідний код модифікацій теж має бути відкритий** під GPL v3
+- ⚠️ Жодних гарантій — програма надається «як є»
+
+### 💼 Комерційне використання без обмежень GPL
+
+Якщо ви — компанія, що хоче інтегрувати код у **закрите/пропрієтарне ПЗ** без GPL-зобов'язань — звертайтесь за **комерційною ліцензією** через [GitHub Issues](https://github.com/r0665629590-droid/bron-analysis/issues) або профіль автора.
+
+### 🤝 Хочете зробити внесок?
+
+Дивіться [CONTRIBUTING.md](CONTRIBUTING.md) та [CLA.md](CLA.md) — для прийняття PR потрібна згода з Contributor License Agreement.
+
+---
+
+**Made with 💛💙 for Ukrainian accountants.**
