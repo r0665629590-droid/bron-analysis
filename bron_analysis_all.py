@@ -69,14 +69,20 @@ def load_settings():
         try:
             with open(SETTINGS_FILE, encoding="utf-8") as f:
                 data = json.load(f)
-            data.setdefault("min_salary",    DEFAULT_MIN_SAL)
-            data.setdefault("coefficients",  [dict(c) for c in DEFAULT_COEFFS])
+            data.setdefault("min_salary",     DEFAULT_MIN_SAL)
+            data.setdefault("coefficients",   [dict(c) for c in DEFAULT_COEFFS])
             data.setdefault("bron_limit_pct", 50)
+            data.setdefault("recent_files",   [])
+            data.setdefault("recent_dia",     [])
+            data.setdefault("auto_load_dia",  True)
             return data
         except Exception:
             pass
-    return {"min_salary": DEFAULT_MIN_SAL, "coefficients": [dict(c) for c in DEFAULT_COEFFS],
-            "bron_limit_pct": 50}
+    return {"min_salary": DEFAULT_MIN_SAL,
+            "coefficients": [dict(c) for c in DEFAULT_COEFFS],
+            "bron_limit_pct": 50,
+            "recent_files": [], "recent_dia": [],
+            "auto_load_dia": True}
 
 def save_settings(data):
     try:
@@ -670,6 +676,12 @@ class App(tk.Tk):
             self._load_file(files[0])
         elif len(files) > 1:
             self._show_file_picker(files)
+        # Авто-завантаження файлу Дії
+        if self.settings.get("auto_load_dia", True):
+            for path in self.settings.get("recent_dia", []):
+                if os.path.exists(path):
+                    self.after(300, lambda p=path: self._load_dia_file_silent(p))
+                    break
 
     def _show_file_picker(self, files):
         win = tk.Toplevel(self)
@@ -723,6 +735,9 @@ class App(tk.Tk):
     # ── Побудова інтерфейсу ───────────────────────────────
 
     def _build_ui(self):
+        # ── Меню ──────────────────────────────────────────
+        self._build_menu()
+
         # Верхня панель
         top = tk.Frame(self, bg=CLR["dark_blue"], height=54)
         top.pack(fill="x"); top.pack_propagate(False)
@@ -959,7 +974,302 @@ class App(tk.Tk):
         tree.tag_configure("bron",    foreground="#0070C0")
         tree.tag_configure("defer",   foreground=CLR["orange"])
         tree.tag_configure("excl",    foreground=CLR["grey_fg"])
+        tree.tag_configure("expired", background="#FFE0E0", foreground=CLR["red_fg"])
+        tree.tag_configure("expiring", background="#FFF2CC", foreground="#806000")
         return tree
+
+    # ── Меню та гарячі клавіші ────────────────────────────
+
+    def _build_menu(self):
+        menubar = tk.Menu(self)
+        # File
+        m_file = tk.Menu(menubar, tearoff=0)
+        m_file.add_command(label="Відкрити xlsx ЗП…   Ctrl+O",
+                            command=self._open_file)
+        m_file.add_command(label="Відкрити файл Дії…  Ctrl+D",
+                            command=self._open_dia_file)
+        m_file.add_separator()
+        self._recent_menu = tk.Menu(m_file, tearoff=0)
+        m_file.add_cascade(label="Нещодавні файли ЗП", menu=self._recent_menu)
+        self._recent_dia_menu = tk.Menu(m_file, tearoff=0)
+        m_file.add_cascade(label="Нещодавні файли Дії", menu=self._recent_dia_menu)
+        m_file.add_separator()
+        m_file.add_command(label="Зберегти в Excel    Ctrl+S",
+                            command=self._save_excel)
+        m_file.add_command(label="Експорт CSV…        Ctrl+E",
+                            command=lambda: self._export_csv(self.tree))
+        m_file.add_separator()
+        m_file.add_command(label="Вийти               Ctrl+Q",
+                            command=self.destroy)
+        menubar.add_cascade(label="Файл", menu=m_file)
+
+        # Settings
+        m_set = tk.Menu(menubar, tearoff=0)
+        m_set.add_command(label="Коефіцієнти…", command=self._open_settings)
+        self._auto_load_var = tk.BooleanVar(value=self.settings.get("auto_load_dia", True))
+        m_set.add_checkbutton(label="Авто-завантажувати останній файл Дії",
+                               variable=self._auto_load_var,
+                               command=self._on_auto_load_toggle)
+        menubar.add_cascade(label="Налаштування", menu=m_set)
+
+        # Help
+        m_help = tk.Menu(menubar, tearoff=0)
+        m_help.add_command(label="Легенда кольорів", command=self._show_legend)
+        m_help.add_command(label="Гарячі клавіші", command=self._show_hotkeys_help)
+        m_help.add_command(label="Про програму", command=self._show_about)
+        menubar.add_cascade(label="Довідка", menu=m_help)
+
+        self.config(menu=menubar)
+        self._refresh_recent_menu()
+
+        # Hotkeys
+        self.bind_all("<Control-o>", lambda e: self._open_file())
+        self.bind_all("<Control-O>", lambda e: self._open_file())
+        self.bind_all("<Control-d>", lambda e: self._open_dia_file())
+        self.bind_all("<Control-D>", lambda e: self._open_dia_file())
+        self.bind_all("<Control-s>", lambda e: self._save_excel())
+        self.bind_all("<Control-S>", lambda e: self._save_excel())
+        self.bind_all("<Control-e>", lambda e: self._export_csv(self.tree))
+        self.bind_all("<Control-E>", lambda e: self._export_csv(self.tree))
+        self.bind_all("<Control-f>", lambda e: self._focus_search())
+        self.bind_all("<Control-F>", lambda e: self._focus_search())
+        self.bind_all("<F5>", lambda e: self._reanalyse())
+        self.bind_all("<Control-q>", lambda e: self.destroy())
+        self.bind_all("<Control-Q>", lambda e: self.destroy())
+
+    def _focus_search(self):
+        try:
+            self.nb.select(self.tab_main)
+            self.search_var.set("")
+            # знайдемо поле пошуку
+            self.search_entry.focus_set()
+        except Exception:
+            pass
+
+    def _on_auto_load_toggle(self):
+        self.settings["auto_load_dia"] = self._auto_load_var.get()
+        save_settings(self.settings)
+
+    def _show_hotkeys_help(self):
+        text = (
+            "Гарячі клавіші:\n\n"
+            "Ctrl+O  — Відкрити файл ЗП\n"
+            "Ctrl+D  — Відкрити файл Дії\n"
+            "Ctrl+S  — Зберегти в Excel\n"
+            "Ctrl+E  — Експорт CSV\n"
+            "Ctrl+F  — Пошук у таблиці\n"
+            "F5      — Перерахувати\n"
+            "Ctrl+Q  — Вийти\n\n"
+            "Подвійний клік на рядку — деталі працівника\n"
+            "Правий клік на рядку    — копіювати у буфер"
+        )
+        messagebox.showinfo("Гарячі клавіші", text)
+
+    def _show_about(self):
+        messagebox.showinfo("Про програму",
+            "Аналіз броньювання — ЗП  (v4)\n\n"
+            "Десктопна програма для аналізу зарплати\n"
+            "заброньованих працівників та військового обліку.\n\n"
+            "GitHub: github.com/r0665629590-droid/bron-analysis")
+
+    def _show_legend(self):
+        win = tk.Toplevel(self)
+        win.title("Легенда кольорів")
+        win.geometry("420x380"); win.resizable(False, False); win.grab_set()
+        tk.Label(win, text="Кольори у таблицях", bg=CLR["dark_blue"],
+                 fg="white", font=("Segoe UI", 11, "bold"),
+                 anchor="w").pack(fill="x", padx=10, pady=(10, 4), ipady=6)
+        items = [
+            (CLR["green_bg"],  CLR["green_fg"], "OK — поріг ЗП виконано"),
+            (CLR["red_bg"],    CLR["red_fg"],   "Потрібно донарахувати"),
+            (CLR["zebra"],     CLR["black"],    "Звичайний рядок (зебра)"),
+            ("#FFFFFF",        "#0070C0",       "Заброньований працівник"),
+            ("#FFFFFF",        CLR["orange"],   "Тимчасова бронь / Відстрочка"),
+            ("#FFFFFF",        CLR["grey_fg"],  "Виключено з військового обліку"),
+            ("#FFE0E0",        CLR["red_fg"],   "Прострочена бронь (термін минув)"),
+            ("#FFF2CC",        "#806000",       "Бронь закінчується < 60 днів"),
+        ]
+        for bg, fg, text in items:
+            f = tk.Frame(win, bg=CLR["bg"])
+            f.pack(fill="x", padx=14, pady=3)
+            sw = tk.Label(f, text="     ", bg=bg, fg=fg, font=("Segoe UI", 10),
+                          relief="solid", borderwidth=1, width=4)
+            sw.pack(side="left", padx=(0, 10))
+            tk.Label(f, text=text, bg=CLR["bg"], fg=fg,
+                     font=("Segoe UI", 10, "bold"), anchor="w").pack(side="left")
+        tk.Button(win, text="Закрити", command=win.destroy,
+                  bg=CLR["mid_blue"], fg="white", font=("Segoe UI", 10),
+                  relief="flat", padx=20, pady=4).pack(pady=12)
+
+    # ── Recent files ─────────────────────────────────────
+
+    def _refresh_recent_menu(self):
+        for menu, key, cmd in [(self._recent_menu, "recent_files", self._load_file),
+                                (self._recent_dia_menu, "recent_dia", self._load_dia_file_silent)]:
+            menu.delete(0, "end")
+            files = [f for f in self.settings.get(key, []) if os.path.exists(f)]
+            if not files:
+                menu.add_command(label="(порожньо)", state="disabled")
+            else:
+                for f in files[:10]:
+                    name = os.path.basename(f)
+                    if len(name) > 50:
+                        name = name[:47] + "..."
+                    menu.add_command(label=name, command=lambda p=f, c=cmd: c(p))
+
+    def _add_recent(self, path, key):
+        files = [f for f in self.settings.get(key, []) if f != path and os.path.exists(f)]
+        files.insert(0, path)
+        self.settings[key] = files[:10]
+        save_settings(self.settings)
+        self._refresh_recent_menu()
+
+    def _load_dia_file_silent(self, path):
+        """Завантаження файлу Дії без діалогу (для recent menu/автозавантаження)."""
+        try:
+            self.dia_data = read_dia_file(path)
+            if not self.dia_data:
+                return
+            pct = self._bron_limit_var.get()
+            self.dia_stats = analyse_dia(self.dia_data, bron_limit_pct=pct)
+            self._populate_dia()
+            self._update_filter_options()
+            self._add_recent(path, "recent_dia")
+            if self.data:
+                self._populate()
+            else:
+                self._apply_filters()
+                for item in self.tree_avg.get_children(): self.tree_avg.delete(item)
+                for label, val, minimum, status, tag in self._build_dia_analytics_rows():
+                    self.tree_avg.insert("", "end",
+                        values=(label, val, minimum, status), tags=(tag,))
+            self.status_var.set(
+                f"📂 Дія: {os.path.basename(path)}  │  "
+                f"{self.dia_stats['total']} осіб  │  "
+                f"{self.dia_stats['liable']} в/з")
+        except Exception as e:
+            messagebox.showerror("Помилка", f"Не вдалося прочитати файл Дії:\n{e}")
+
+    # ── Контекстне меню та подвійний клік ────────────────
+
+    def _setup_tree_interactions(self, tree, on_double=None):
+        """Підключає правий клік (контекст) і подвійний клік до Treeview."""
+        menu = tk.Menu(tree, tearoff=0)
+        menu.add_command(label="Копіювати клітинку",
+                          command=lambda: self._copy_cell(tree))
+        menu.add_command(label="Копіювати рядок (з табуляцією)",
+                          command=lambda: self._copy_row(tree))
+        menu.add_command(label="Копіювати всі видимі рядки",
+                          command=lambda: self._copy_all_visible(tree))
+
+        def on_right_click(event):
+            row = tree.identify_row(event.y)
+            col = tree.identify_column(event.x)
+            if row:
+                tree.selection_set(row)
+                tree._last_col = col
+            menu.tk_popup(event.x_root, event.y_root)
+        tree.bind("<Button-3>", on_right_click)
+        if on_double:
+            tree.bind("<Double-1>", lambda e: on_double(tree, e))
+
+    def _copy_cell(self, tree):
+        sel = tree.selection()
+        if not sel:
+            return
+        col = getattr(tree, "_last_col", "#1")
+        try:
+            col_idx = int(col.replace("#", "")) - 1
+            val = tree.item(sel[0], "values")[col_idx]
+        except Exception:
+            val = " ".join(str(v) for v in tree.item(sel[0], "values"))
+        self.clipboard_clear(); self.clipboard_append(str(val))
+
+    def _copy_row(self, tree):
+        sel = tree.selection()
+        if not sel:
+            return
+        vals = tree.item(sel[0], "values")
+        self.clipboard_clear()
+        self.clipboard_append("\t".join(str(v) for v in vals))
+
+    def _copy_all_visible(self, tree):
+        cols = tree["columns"]
+        lines = ["\t".join(cols)]
+        for item in tree.get_children():
+            lines.append("\t".join(str(v) for v in tree.item(item, "values")))
+        self.clipboard_clear()
+        self.clipboard_append("\n".join(lines))
+        messagebox.showinfo("Готово", f"Скопійовано {len(lines) - 1} рядків.")
+
+    def _on_main_row_double(self, tree, _evt):
+        """Деталі по працівнику — всі вхідні рядки з регістра ЗП."""
+        sel = tree.selection()
+        if not sel:
+            return
+        vals = tree.item(sel[0], "values")
+        if len(vals) < 2:
+            return
+        name = vals[1]
+        self._show_employee_details(name)
+
+    def _show_employee_details(self, name):
+        if not self._wb or not self.current_sheet:
+            messagebox.showinfo("Деталі", f"Працівник: {name}\n\n"
+                                  "Завантажте файл ЗП для перегляду деталей.")
+            return
+        rows, headers = read_sheet(self._wb[self.current_sheet])
+        cols_info = detect_columns(headers)
+        emp_col = cols_info["employee"] or ""
+        amt_col = cols_info["amount"] or ""
+        grp_col = cols_info["group"] or ""
+        bron_col = cols_info["bron"] or "Бронь"
+        # Знайдемо всі рядки цього працівника
+        matched = [r for r in rows
+                   if _norm_name(str(r.get(emp_col) or "")) == _norm_name(name)]
+        win = tk.Toplevel(self)
+        win.title(f"Деталі — {name}")
+        win.geometry("780x460"); win.grab_set()
+        tk.Label(win, text=f"📋  {name}", bg=CLR["dark_blue"], fg="white",
+                 font=("Segoe UI", 12, "bold"), anchor="w").pack(
+                     fill="x", padx=10, pady=(10, 0), ipady=6)
+        tk.Label(win, text=f"Знайдено рядків: {len(matched)}  │  "
+                  f"Аркуш: «{self.current_sheet}»  │  Файл: {os.path.basename(self.current_file)}",
+                  bg=CLR["bg"], fg=CLR["grey_fg"], font=("Segoe UI", 9, "italic"),
+                  anchor="w").pack(fill="x", padx=12, pady=2)
+        cols = ("№", "Сума", "Група", "Бронь", "Реєстратор")
+        frame = tk.Frame(win, bg=CLR["bg"])
+        frame.pack(fill="both", expand=True, padx=10, pady=4)
+        tree = ttk.Treeview(frame, columns=cols, show="headings", height=14)
+        for c, w in zip(cols, [40, 110, 200, 60, 350]):
+            tree.heading(c, text=c)
+            tree.column(c, width=w, anchor="w")
+        vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+        tree.configure(yscrollcommand=vsb.set)
+        tree.pack(side="left", fill="both", expand=True)
+        vsb.pack(side="right", fill="y")
+        total = 0.0
+        for i, r in enumerate(matched, 1):
+            try:
+                amt = float(r.get(amt_col) or 0)
+                total += amt
+            except (TypeError, ValueError):
+                amt = 0
+            reg = ""
+            for hdr in headers:
+                if hdr and "реєстратор" in str(hdr).lower():
+                    reg = str(r.get(hdr) or "")
+                    break
+            tree.insert("", "end", values=(i, f"{amt:,.2f}",
+                                            str(r.get(grp_col) or ""),
+                                            str(r.get(bron_col) or ""),
+                                            reg))
+        tk.Label(win, text=f"Загальна сума: {total:,.2f} грн",
+                  bg=CLR["bg"], fg=CLR["dark_blue"],
+                  font=("Segoe UI", 11, "bold")).pack(pady=6, anchor="e", padx=14)
+        tk.Button(win, text="Закрити", command=win.destroy,
+                  bg=CLR["mid_blue"], fg="white", font=("Segoe UI", 10),
+                  relief="flat", padx=20, pady=4).pack(pady=(0, 10))
 
     # ── Вкладки ───────────────────────────────────────────
 
@@ -999,16 +1309,39 @@ class App(tk.Tk):
                   relief="flat", padx=6, pady=1, cursor="hand2").pack(side="left", padx=4)
 
         sf = tk.Frame(f, bg=CLR["bg"]); sf.pack(fill="x", padx=10, pady=(0, 6))
-        tk.Label(sf, text="🔍 Пошук:", bg=CLR["bg"],
+        tk.Label(sf, text="🔍 Пошук (Ctrl+F):", bg=CLR["bg"],
                  font=("Segoe UI", 9)).pack(side="left")
         self.search_var = tk.StringVar()
         self.search_var.trace("w", lambda *_: self._apply_filters())
-        tk.Entry(sf, textvariable=self.search_var,
-                 font=("Segoe UI", 10), width=32).pack(side="left", padx=6)
-        tk.Button(sf, text="📥 Експорт CSV",
+        self.search_entry = tk.Entry(sf, textvariable=self.search_var,
+                 font=("Segoe UI", 10), width=32)
+        self.search_entry.pack(side="left", padx=6)
+        tk.Button(sf, text="📥 Експорт CSV (Ctrl+E)",
                   command=lambda: self._export_csv(self.tree),
                   bg=CLR["dark_blue"], fg="white", font=("Segoe UI", 9),
                   relief="flat", padx=8, pady=2, cursor="hand2").pack(side="right")
+
+        # Легенда кольорів внизу
+        lg = tk.Frame(f, bg=CLR["bg"]); lg.pack(fill="x", padx=10, pady=(0, 6))
+        tk.Label(lg, text="Підказка:", bg=CLR["bg"], fg=CLR["grey_fg"],
+                 font=("Segoe UI", 8, "italic")).pack(side="left")
+        for bg, fg, txt in [
+            (CLR["green_bg"], CLR["green_fg"], "OK"),
+            (CLR["red_bg"],   CLR["red_fg"],   "Донарахувати"),
+            ("#FFF2CC",       "#806000",       "Бронь < 60 дн."),
+            (CLR["red_bg"],   CLR["red_fg"],   "Прострочено"),
+            ("#FFFFFF",       CLR["orange"],   "Лише в Дії"),
+        ]:
+            tk.Label(lg, text=f" {txt} ", bg=bg, fg=fg,
+                     font=("Segoe UI", 8, "bold"),
+                     relief="solid", borderwidth=1).pack(side="left", padx=3)
+        tk.Label(lg, text="  Подвійний клік на рядку — деталі  │  "
+                  "Правий клік — копіювати",
+                  bg=CLR["bg"], fg=CLR["grey_fg"],
+                  font=("Segoe UI", 8, "italic")).pack(side="right")
+
+        # Контекстне меню та подвійний клік
+        self._setup_tree_interactions(self.tree, on_double=self._on_main_row_double)
 
     def _build_summary_tab(self):
         f = self.tab_summary
@@ -1017,6 +1350,7 @@ class App(tk.Tk):
                      fill="x", padx=10, pady=(10, 0), ipady=8)
         self.tree_summary = self._make_tree(
             f, ("Показник", "Значення"), [370, 240], height=14)
+        self._setup_tree_interactions(self.tree_summary)
         bf = tk.Frame(f, bg=CLR["bg"]); bf.pack(fill="x", padx=10, pady=(0, 6))
         tk.Button(bf, text="📥 Експорт CSV",
                   command=lambda: self._export_csv(self.tree_summary),
@@ -1049,6 +1383,7 @@ class App(tk.Tk):
         self.tree_avg = self._make_tree(
             f, ("Показник", "Значення", "Поріг / Деталі", "Відповідність"),
             [340, 170, 290, 170], height=22)
+        self._setup_tree_interactions(self.tree_avg)
         bf = tk.Frame(f, bg=CLR["bg"]); bf.pack(fill="x", padx=10, pady=(0, 6))
         tk.Button(bf, text="📥 Експорт CSV",
                   command=lambda: self._export_csv(self.tree_avg),
@@ -1070,6 +1405,7 @@ class App(tk.Tk):
             messagebox.showerror("Помилка відкриття", str(e)); return
         self.current_file = path
         self._wb = wb
+        self._add_recent(path, "recent_files")
         candidates = [s for s in wb.sheetnames if s != OUTPUT_SHEET]
         self._sheet_cb.configure(values=candidates, state="readonly")
         self._pick_sheet(wb.sheetnames, self._analyse_sheet)
@@ -1118,6 +1454,7 @@ class App(tk.Tk):
         pct = self._bron_limit_var.get()
         self.dia_stats = analyse_dia(self.dia_data, bron_limit_pct=pct)
         self._populate_dia()
+        self._add_recent(path, "recent_dia")
         # Оновити фільтри і підсумки
         self._update_filter_options()
         if self.data:
@@ -1460,11 +1797,23 @@ class App(tk.Tk):
             num += 1
             donar_str = f"{r['donar']:,.2f}" if r["donar"] != "" else ""
             suma_str  = f"{r['suma']:,.2f}" if r["in_zp"] else "—"
+            # Перевірка терміну броні
+            term_tag = None
+            if r["dia_status"] == DIA_BRON and r["dia_term"]:
+                dt = _parse_dia_date(r["dia_term"])
+                if dt:
+                    days = (dt - datetime.now()).days
+                    if days < 0:
+                        term_tag = "expired"
+                    elif days <= 60:
+                        term_tag = "expiring"
             values = (num, r["name"], r["dept"], r["bron"],
                       suma_str, r["status"], donar_str,
                       r["dia_status"] or "—", r["dia_type"] or "—",
                       r["dia_term"] or "—")
             if r["status"] == STATUS_NEED:   tag = "need"
+            elif term_tag == "expired":      tag = "expired"
+            elif term_tag == "expiring":     tag = "expiring"
             elif r["status"] == STATUS_OK:   tag = "ok"
             elif not r["in_zp"]:             tag = "defer"
             elif num % 2 == 0:               tag = "zebra"
