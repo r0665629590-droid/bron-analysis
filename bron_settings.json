@@ -16,11 +16,13 @@
   ],
   "bron_limit_pct": 50,
   "recent_files": [
-    "C:\\Users\\offic\\Desktop\\TEST\\Аналіз_броньювання\\sample_zp.xlsx",
-    "C:/Users/offic/Desktop/TEST/Аналіз_броньювання/sample_zp.xlsx"
+    "C:\\Users\\offic\\Desktop\\TEST\\Аналіз_бронювання\\sample_zp.xlsx",
+    "sample_zp.xlsx",
+    "C:/Users/offic/Desktop/TEST/Аналіз_бронювання/sample_zp.xlsx"
   ],
   "recent_dia": [
-    "C:\\Users\\offic\\Desktop\\TEST\\Аналіз_броньювання\\sample_dia.xlsx"
+    "C:\\Users\\offic\\Desktop\\TEST\\Аналіз_бронювання\\sample_dia.xlsx",
+    "sample_dia.xlsx"
   ],
   "auto_load_dia": true
 }
