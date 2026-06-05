@@ -35,5 +35,7 @@ desktop.ini
 _*.json
 _*.txt
 
-# Дозволяємо приклад налаштувань
+# Дозволяємо приклади та налаштування
 !bron_settings.json
+!sample_zp.xlsx
+!sample_dia.xlsx

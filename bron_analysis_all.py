@@ -160,6 +160,41 @@ def read_dia_file(path):
     return all_persons
 
 
+def clean_dates_in_sheet(ws):
+    """Очищає колонку 'Період' від часу 00:00:00.
+    Підтримує два варіанти:
+    - текст 'DD.MM.YYYY 00:00:00' → 'DD.MM.YYYY'
+    - datetime з часом 00:00:00 → числовий формат DD.MM.YYYY
+    Повертає кількість оновлених клітинок."""
+    # Знайдемо колонку з періодом/датою
+    headers = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
+    date_cols = [i + 1 for i, h in enumerate(headers)
+                 if h and ("період" in str(h).lower() or "дата" in str(h).lower())]
+    if not date_cols:
+        return 0
+    count = 0
+    for row in ws.iter_rows(min_row=2):
+        for col_idx in date_cols:
+            if col_idx > len(row):
+                continue
+            cell = row[col_idx - 1]
+            v = cell.value
+            if v is None:
+                continue
+            if isinstance(v, str):
+                # Текст із часом — видаляємо " 00:00:00" (або інший час)
+                m = re.match(r"^\s*(\d{1,2}\.\d{1,2}\.\d{4})\s+\d{1,2}:\d{2}(:\d{2})?\s*$", v)
+                if m:
+                    cell.value = m.group(1)
+                    count += 1
+            elif isinstance(v, datetime):
+                # datetime — встановити формат без часу
+                if cell.number_format != "DD.MM.YYYY":
+                    cell.number_format = "DD.MM.YYYY"
+                    count += 1
+    return count
+
+
 def _parse_dia_date(note):
     """Парсить дату з примітки виду 'До 18.03.2027'."""
     m = re.search(r"(\d{2})\.(\d{2})\.(\d{4})", note or "")
@@ -1547,10 +1582,15 @@ class App(tk.Tk):
     def _save_excel(self):
         if not self._wb or not self.current_file: return
         try:
+            # Очищаємо дати у вихідному аркуші (видаляємо " 00:00:00")
+            cleaned = 0
+            if self.current_sheet and self.current_sheet in self._wb.sheetnames:
+                cleaned = clean_dates_in_sheet(self._wb[self.current_sheet])
             write_excel(self._wb, self.data, self.stats, self.current_sheet)
             self._wb.save(self.current_file)
+            extra = f"\n(Дати очищено: {cleaned} клітинок)" if cleaned else ""
             messagebox.showinfo("Готово",
-                f"✅  Аркуш «{OUTPUT_SHEET}» оновлено!\n\n{self.current_file}")
+                f"✅  Аркуш «{OUTPUT_SHEET}» оновлено!{extra}\n\n{self.current_file}")
         except PermissionError:
             messagebox.showerror("Помилка",
                 "Файл відкритий в Excel.\nЗакрийте його і спробуйте знову.")
