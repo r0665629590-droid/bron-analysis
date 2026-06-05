@@ -1081,7 +1081,7 @@ class App(tk.Tk):
 
     def _show_about(self):
         messagebox.showinfo("Про програму",
-            "Аналіз броньювання — ЗП  (v4)\n\n"
+            "Аналіз бронювання — ЗП  (v5)\n\n"
             "Десктопна програма для аналізу зарплати\n"
             "заброньованих працівників та військового обліку.\n\n"
             "GitHub: github.com/r0665629590-droid/bron-analysis")

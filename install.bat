@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title Встановлення — Аналіз броньювання
+title Встановлення — Аналіз бронювання
 setlocal enabledelayedexpansion
 
 echo ============================================================
@@ -85,7 +85,7 @@ echo.
 REM ── 4. Створення ярлика на робочому столі ──────────────────
 echo Створення ярлика на робочому столі...
 set SCRIPT_PATH=%~dp0bron_analysis_all.py
-set SHORTCUT=%USERPROFILE%\Desktop\Аналіз броньювання.lnk
+set SHORTCUT=%USERPROFILE%\Desktop\Аналіз бронювання.lnk
 
 powershell -NoProfile -Command ^
     "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('%SHORTCUT%');" ^
