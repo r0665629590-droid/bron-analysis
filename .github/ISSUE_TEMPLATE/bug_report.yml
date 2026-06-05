@@ -1,0 +1,73 @@
+name: 🐛 Помилка
+description: Повідомити про помилку в програмі
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Дякуємо що повідомляєте про помилку! Заповніть форму нижче — це допоможе швидше її виправити.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Що сталося?
+      description: Опишіть проблему. Що очікувалось і що відбулось насправді?
+      placeholder: |
+        Очікував побачити список заброньованих, але програма видала помилку...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Кроки для відтворення
+      description: Як саме відтворити проблему?
+      placeholder: |
+        1. Запустив run.bat
+        2. Натиснув "Відкрити файл" і обрав test.xlsx
+        3. Обрав аркуш "Регістер"
+        4. Програма закрилась / показала помилку
+    validations:
+      required: true
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Текст помилки (якщо є)
+      description: Скопіюйте текст з вікна помилки або з консолі
+      render: shell
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Версія Python
+      description: Запустіть в cmd `python --version`
+      placeholder: "3.12.7"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Операційна система
+      options:
+        - Windows 11
+        - Windows 10
+        - Інше (вкажіть у деталях)
+    validations:
+      required: true
+
+  - type: textarea
+    id: file-info
+    attributes:
+      label: Інформація про вхідний файл (якщо безпечно)
+      description: |
+        Якщо проблема з відкриттям певного файлу — додайте структуру (без особистих даних).
+        Або прикріпіть **замаскований** xlsx (з вигаданими ПІБ).
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Додатковий контекст
+      description: Скріншоти, посилання, що завгодно ще

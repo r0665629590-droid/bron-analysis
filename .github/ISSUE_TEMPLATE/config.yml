@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Питання / Обговорення
+    url: https://github.com/r0665629590-droid/bron-analysis/discussions
+    about: Питання, ідеї, як використовувати — пишіть у Discussions
+  - name: 📚 Документація (README)
+    url: https://github.com/r0665629590-droid/bron-analysis#readme
+    about: Інструкція з встановлення та використання
+  - name: 🐛 Помилка в програмі
+    url: https://github.com/r0665629590-droid/bron-analysis/issues/new?template=bug_report.yml
+    about: Створити Bug Report з шаблоном

@@ -4,6 +4,9 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)](https://github.com/r0665629590-droid/bron-analysis)
 [![Made for](https://img.shields.io/badge/Made_for-🇺🇦_Ukraine-yellow)](https://github.com/r0665629590-droid/bron-analysis)
+[![Discussions](https://img.shields.io/github/discussions/r0665629590-droid/bron-analysis?label=💬%20Discussions)](https://github.com/r0665629590-droid/bron-analysis/discussions)
+[![Issues](https://img.shields.io/github/issues/r0665629590-droid/bron-analysis?label=🐛%20Issues)](https://github.com/r0665629590-droid/bron-analysis/issues)
+[![Stars](https://img.shields.io/github/stars/r0665629590-droid/bron-analysis?style=social)](https://github.com/r0665629590-droid/bron-analysis/stargazers)
 
 Десктопна програма (Python/Tkinter) для бухгалтерів та кадровиків в Україні.
 Перевіряє відповідність нарахованої зарплати **заброньованих працівників** мінімальному порогу,
@@ -217,6 +220,16 @@
 - Python 3.10+ (встановлюється автоматично)
 - `openpyxl` ≥ 3.1
 - `tkinter` (входить до Python)
+
+---
+
+## 💬 Спільнота
+
+- 🙏 **Маєте питання?** → [Discussions: Q&A](https://github.com/r0665629590-droid/bron-analysis/discussions/categories/q-a)
+- 💡 **Є ідея?** → [Discussions: Ideas](https://github.com/r0665629590-droid/bron-analysis/discussions/categories/ideas)
+- 🐛 **Знайшли помилку?** → [Створити Issue](https://github.com/r0665629590-droid/bron-analysis/issues/new?template=bug_report.yml)
+- ✨ **Пропозиція фічі?** → [Створити Feature Request](https://github.com/r0665629590-droid/bron-analysis/issues/new?template=feature_request.yml)
+- 🙌 **Хочете поділитись досвідом?** → [Show and tell](https://github.com/r0665629590-droid/bron-analysis/discussions/categories/show-and-tell)
 
 ---
 

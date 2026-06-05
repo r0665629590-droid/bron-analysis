@@ -1,0 +1,47 @@
+name: ✨ Пропозиція фічі
+description: Запропонувати нову функцію або покращення
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Дякуємо за пропозицію! Чим детальніше опишете — тим вище шанс що фіча буде реалізована.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Яку проблему фіча вирішує?
+      description: Опишіть ситуацію в роботі бухгалтера/кадровика, з якою фіча допоможе
+      placeholder: |
+        Зараз кожен місяць доводиться вручну порівнювати з минулим — хто додався, хто пішов...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Бажане рішення
+      description: Як ви собі це уявляєте?
+      placeholder: |
+        Додати вкладку "Історія" — зберігати результати по місяцях і показувати графік зміни % бронювання
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Альтернативи (опціонально)
+      description: Чи розглядали інші варіанти?
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Наскільки це критично для вашої роботи?
+      options:
+        - Бажано б мати
+        - Корисно, але можна обійтись
+        - Дуже потрібно, без цього незручно
+        - Критично, не можу працювати без цього
+    validations:
+      required: true

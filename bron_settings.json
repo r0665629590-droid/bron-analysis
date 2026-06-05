@@ -14,10 +14,10 @@
       "value": 3.0
     }
   ],
-  "bron_limit_pct": 100,
+  "bron_limit_pct": 50,
   "recent_files": [
-    "C:/Users/offic/Desktop/TEST/Аналіз_броньювання/sample_zp.xlsx",
-    "C:\\Users\\offic\\Desktop\\TEST\\Аналіз_броньювання\\sample_zp.xlsx"
+    "C:\\Users\\offic\\Desktop\\TEST\\Аналіз_броньювання\\sample_zp.xlsx",
+    "C:/Users/offic/Desktop/TEST/Аналіз_броньювання/sample_zp.xlsx"
   ],
   "recent_dia": [
     "C:\\Users\\offic\\Desktop\\TEST\\Аналіз_броньювання\\sample_dia.xlsx"
