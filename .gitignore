@@ -39,3 +39,5 @@ _*.txt
 !bron_settings.json
 !sample_zp.xlsx
 !sample_dia.xlsx
+!screenshots/
+!screenshots/*.png
